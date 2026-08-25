@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registro Nacional de Contraseñas Lamentables</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js" defer></script>
+<style>
+  :root{
+    --papel:#E3E8D6;
+    --papel-hueso:#EDF0E4;
+    --tinta:#1D2A33;
+    --tinta-suave:#5F6B63;
+    --escritorio:#333A33;
+    --sello-rojo:#B4352B;
+    --sello-ocre:#8A6A1F;
+    --sello-verde:#2E6B4F;
+    --mimeo:#574194;
+    --linea:#A9B4A0;
+
+    --display:"Arial Narrow","Helvetica Neue",Helvetica,sans-serif;
+    --sello:Impact,Haettenschweiler,"Arial Narrow Bold","Arial Narrow",sans-serif;
+    --mono:"Courier New",ui-monospace,monospace;
+    --serif:Georgia,"Times New Roman",serif;
+  }
+
+  *{box-sizing:border-box}
+
+  body{
+    margin:0;
+    padding:28px 12px 60px;
+    background:var(--escritorio);
+    background-image:
+      repeating-linear-gradient(112deg, rgba(255,255,255,.022) 0 2px, transparent 2px 7px);
+    color:var(--tinta);
+    font-family:var(--mono);
+    font-size:15px;
+    line-height:1.55;
+    -webkit-text-size-adjust:100%;
+  }
+
+  /* ---------- la hoja de formulario continuo ---------- */
+  .hoja{
+    max-width:660px;
+    margin:0 auto;
+    background:var(--papel);
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0 27px, rgba(29,42,51,.045) 27px 28px);
+    padding:26px 20px 30px 20px;
+    box-shadow:0 14px 34px rgba(0,0,0,.42);
+    position:relative;
+  }
+  /* perforaciones de impresora de arrastre */
+  .hoja::before,.hoja::after{
+    content:"";
+    position:absolute; top:0; bottom:0; width:17px;
+    background-image:radial-gradient(circle at 50% 8px, var(--escritorio) 3.5px, transparent 4px);
+    background-size:17px 24px;
+    opacity:.85;
+  }
+  .hoja::before{left:0; border-right:1px dashed rgba(29,42,51,.28)}
+  .hoja::after{right:0; border-left:1px dashed rgba(29,42,51,.28)}
+  .interior{padding:0 12px}
+
+  /* ---------- membrete ---------- */
+  .membrete{border-bottom:3px double var(--tinta); padding-bottom:12px; margin-bottom:4px}
+  .escudo{
+    font-family:var(--sello); font-size:19px; letter-spacing:.14em;
+    color:var(--papel); background:var(--tinta);
+    display:inline-block; padding:1px 9px 2px; margin-bottom:9px;
+  }
+  h1{
+    font-family:var(--display); font-weight:700;
+    text-transform:uppercase; letter-spacing:.075em;
+    font-size:clamp(19px,5.1vw,29px); line-height:1.06;
+    margin:0 0 6px;
+  }
+  .subtitulo{
+    font-family:var(--serif); font-style:italic;
+    color:var(--tinta-suave); font-size:13.5px; margin:0;
+  }
+  .expediente{
+    display:flex; flex-wrap:wrap; gap:4px 18px;
+    font-size:11px; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--tinta-suave); margin-top:11px;
+  }
+
+  /* ---------- campos del formulario ---------- */
+  .seccion{
+    font-family:var(--display); text-transform:uppercase;
+    letter-spacing:.16em; font-size:12px; font-weight:700;
+    border-bottom:1px solid var(--linea);
+    padding-bottom:3px; margin:26px 0 15px;
+  }
+  .campo{margin-bottom:15px}
+  label{
+    display:block; font-size:10.5px; letter-spacing:.13em;
+    text-transform:uppercase; color:var(--tinta-suave); margin-bottom:1px;
+  }
+  input[type=text],input[type=email],input[type=password]{
+    width:100%; border:0; border-bottom:1px dotted var(--tinta);
+    background:transparent; padding:5px 2px;
+    font-family:var(--mono); font-size:16px; color:var(--tinta);
+    border-radius:0;
+  }
+  input::placeholder{color:#9AA394; font-style:italic}
+  input:focus{outline:0; border-bottom:2px solid var(--mimeo); background:rgba(87,65,148,.07)}
+  input:focus-visible{outline:2px solid var(--mimeo); outline-offset:3px}
+
+  .nota-privacidad{
+    font-family:var(--serif); font-size:12.5px; color:var(--tinta-suave);
+    border-left:3px solid var(--mimeo); padding:6px 0 6px 10px; margin:6px 0 0;
+  }
+
+  .jurada{display:flex; gap:9px; align-items:flex-start; margin:22px 0 6px}
+  .jurada input{margin-top:3px; width:17px; height:17px; accent-color:var(--mimeo); flex:none}
+  .jurada label{
+    text-transform:none; letter-spacing:0; font-size:13px;
+    font-family:var(--serif); color:var(--tinta); margin:0;
+  }
+
+  button{
+    font-family:var(--display); text-transform:uppercase;
+    letter-spacing:.15em; font-weight:700; font-size:14px;
+    background:var(--tinta); color:var(--papel-hueso);
+    border:0; padding:13px 20px; width:100%;
+    cursor:pointer; border-radius:0; margin-top:14px;
+  }
+  button:hover{background:var(--mimeo)}
+  button:focus-visible{outline:3px solid var(--mimeo); outline-offset:3px}
+  button.secundario{
+    background:transparent; color:var(--tinta);
+    border:1.5px solid var(--tinta); font-size:12.5px; padding:10px 14px;
+  }
+  button.secundario:hover{background:var(--tinta); color:var(--papel)}
+
+  .error-form{
+    color:var(--sello-rojo); font-family:var(--serif); font-size:13px;
+    margin-top:10px; min-height:1px;
+  }
+
+  /* ---------- dictamen ---------- */
+  #dictamen{margin-top:34px; border-top:3px double var(--tinta); padding-top:20px}
+  #dictamen[hidden]{display:none}
+
+  .bloque-sello{text-align:center; margin:6px 0 20px}
+  .sello{
+    display:inline-block;
+    font-family:var(--sello); font-size:clamp(30px,8.4vw,48px);
+    letter-spacing:.06em; line-height:1;
+    padding:11px 20px 9px;
+    border:5px double currentColor;
+    transform:rotate(-6.5deg);
+    opacity:.86;
+    mix-blend-mode:multiply;
+  }
+  .s0,.s1{color:var(--sello-rojo)}
+  .s2{color:var(--sello-ocre)}
+  .s3,.s4{color:var(--sello-verde)}
+  @keyframes golpe{
+    0%{transform:rotate(-6.5deg) scale(2.1); opacity:0}
+    62%{opacity:.95}
+    78%{transform:rotate(-6.5deg) scale(.94)}
+    100%{transform:rotate(-6.5deg) scale(1); opacity:.86}
+  }
+  .animar .sello{animation:golpe .42s cubic-bezier(.2,.8,.3,1) both}
+
+  .medidor{
+    display:flex; gap:7px; justify-content:center;
+    margin:0 0 18px; font-family:var(--mono); font-size:20px;
+  }
+  .casilla{
+    width:26px; height:26px; border:1.5px solid var(--tinta);
+    display:grid; place-items:center; font-size:19px; line-height:1;
+  }
+  .casilla.on{background:var(--tinta); color:var(--papel)}
+
+  .dato{
+    display:flex; justify-content:space-between; gap:12px;
+    border-bottom:1px dotted var(--linea); padding:7px 0; font-size:13.5px;
+  }
+  .dato span:first-child{
+    font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--tinta-suave); padding-top:2px; flex:none;
+  }
+  .dato span:last-child{text-align:right; font-weight:700}
+
+  ol.observaciones{margin:20px 0 0; padding-left:0; list-style:none; counter-reset:obs}
+  ol.observaciones li{
+    counter-increment:obs; position:relative;
+    padding:10px 0 10px 46px; border-bottom:1px dotted var(--linea);
+    font-family:var(--serif); font-size:14.5px;
+  }
+  ol.observaciones li::before{
+    content:"Obs. " counter(obs);
+    position:absolute; left:0; top:12px;
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.06em;
+    color:var(--sello-rojo); text-transform:uppercase;
+  }
+
+  .sugerencia{
+    margin-top:22px; border:1.5px dashed var(--mimeo);
+    padding:13px 14px; background:rgba(87,65,148,.05);
+  }
+  .sugerencia h3{
+    font-family:var(--display); text-transform:uppercase; letter-spacing:.14em;
+    font-size:11.5px; margin:0 0 8px; color:var(--mimeo);
+  }
+  .propuesta{
+    font-family:var(--mono); font-size:clamp(15px,4.3vw,20px);
+    font-weight:700; word-break:break-all; margin:10px 0 4px;
+    background:var(--papel-hueso); padding:9px 10px; border:1px solid var(--linea);
+  }
+  .propuesta-nota{font-family:var(--serif); font-size:12.5px; color:var(--tinta-suave); margin:0}
+  .fila-botones{display:flex; gap:9px; flex-wrap:wrap; margin-top:12px}
+  .fila-botones button{margin-top:0; width:auto; flex:1 1 165px}
+
+  .pie{
+    margin-top:26px; border-top:1px solid var(--linea); padding-top:11px;
+    font-family:var(--serif); font-size:11.5px; color:var(--tinta-suave);
+  }
+
+  .aviso-carga{
+    background:var(--sello-rojo); color:#fff; padding:9px 12px;
+    font-family:var(--serif); font-size:13px; margin-bottom:16px;
+  }
+  .aviso-carga[hidden]{display:none}
+
+  @media (prefers-reduced-motion:reduce){
+    .animar .sello{animation:none}
+  }
+  @media (max-width:430px){
+    .interior{padding:0 6px}
+    .hoja{padding-left:16px; padding-right:16px}
+    .hoja::before,.hoja::after{display:none}
+  }
+</style>
+</head>
+<body>
+
+<main class="hoja">
+<div class="interior">
+
+  <header class="membrete">
+    <div class="escudo">R.N.C.L.</div>
+    <h1>Registro Nacional de Contraseñas Lamentables</h1>
+    <p class="subtitulo">Formulario 4-B — Solicitud de dictamen de seguridad</p>
+    <div class="expediente">
+      <span>Expediente Nº <b id="nroExp">0000-0000</b></span>
+      <span>Mesa de entradas</span>
+      <span>Sin arancel</span>
+    </div>
+  </header>
+
+  <div class="aviso-carga" id="avisoCarga" hidden>
+    No se pudo cargar el motor de análisis (zxcvbn). Revisá tu conexión y recargá la página.
+  </div>
+
+  <h2 class="seccion">I — Datos del solicitante</h2>
+
+  <div class="campo">
+    <label for="nombre">Nombre</label>
+    <input type="text" id="nombre" autocomplete="off" placeholder="Juan">
+  </div>
+  <div class="campo">
+    <label for="apellido">Apellido</label>
+    <input type="text" id="apellido" autocomplete="off" placeholder="Pérez">
+  </div>
+  <div class="campo">
+    <label for="mail">Correo electrónico</label>
+    <input type="email" id="mail" autocomplete="off" placeholder="juanperez@correo.com">
+  </div>
+
+  <h2 class="seccion">II — Contraseña sometida a dictamen</h2>
+
+  <div class="campo">
+    <label for="pass">Contraseña propuesta</label>
+    <input type="text" id="pass" autocomplete="off" spellcheck="false" placeholder="escribí acá la candidata">
+    <p class="nota-privacidad">
+      Nada de esto sale de tu navegador: no hay servidor, no hay envío, no hay registro.
+      Aun así, probá con una contraseña de mentira. No con la del banco.
+    </p>
+  </div>
+
+  <div class="jurada">
+    <input type="checkbox" id="jurada">
+    <label for="jurada">Declaro bajo juramento que esta no es mi contraseña real.</label>
+  </div>
+
+  <button id="btnAnalizar">Presentar el trámite</button>
+  <p class="error-form" id="errorForm"></p>
+
+  <section id="dictamen" hidden aria-live="polite">
+    <h2 class="seccion">III — Dictamen</h2>
+
+    <div class="bloque-sello" id="bloqueSello">
+      <div class="sello s0" id="sello">RECHAZADA</div>
+    </div>
+
+    <div class="medidor" id="medidor" role="img" aria-label="Puntaje de seguridad"></div>
+
+    <div class="dato">
+      <span>Tiempo hasta que te entren</span>
+      <span id="tiempo">—</span>
+    </div>
+    <div class="dato">
+      <span>Intentos necesarios</span>
+      <span id="intentos">—</span>
+    </div>
+    <div class="dato">
+      <span>Largo</span>
+      <span id="largo">—</span>
+    </div>
+
+    <ol class="observaciones" id="observaciones"></ol>
+
+    <div class="sugerencia">
+      <h3>Anexo — Propuesta de reemplazo</h3>
+      <p class="propuesta-nota">Cuatro palabras al azar. Larga, absurda, y se acuerda sola.</p>
+      <div class="propuesta" id="propuesta">—</div>
+      <p class="propuesta-nota" id="propuestaNota"></p>
+      <div class="fila-botones">
+        <button class="secundario" id="btnGenerar">Generar otra</button>
+        <button class="secundario" id="btnCopiar">Copiar el dictamen</button>
+      </div>
+    </div>
+  </section>
+
+  <p class="pie">
+    El R.N.C.L. no existe. El análisis sí: usa zxcvbn, la misma librería que Dropbox liberó
+    para estimar cuánto aguanta una contraseña en la vida real. El chiste es gratis,
+    la recomendación es en serio: lo que más suma es el largo.
+  </p>
+
+</div>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ---------- expediente decorativo ---------- */
+  var az = new Uint32Array(2); crypto.getRandomValues(az);
+  $("nroExp").textContent =
+    String(az[0] % 9000 + 1000) + "-" + String(az[1] % 9000 + 1000);
+
+  /* ---------- utilidades ---------- */
+  function normalizar(t){
+    return (t || "")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/4/g,"a").replace(/3/g,"e").replace(/1/g,"i")
+      .replace(/0/g,"o").replace(/5/g,"s").replace(/7/g,"t").replace(/@/g,"a");
+  }
+
+  function elegir(lista){
+    var v = new Uint32Array(1); crypto.getRandomValues(v);
+    return lista[v[0] % lista.length];
+  }
+
+  function plural(n, sing, plu){
+    return n === 1 ? "1 " + sing : n.toLocaleString("es-AR") + " " + plu;
+  }
+
+  function formatearTiempo(s){
+    if (s < 1)        return "menos de un segundo";
+    if (s < 60)       return plural(Math.round(s), "segundo", "segundos");
+    if (s < 3600)     return plural(Math.round(s/60), "minuto", "minutos");
+    if (s < 86400)    return plural(Math.round(s/3600), "hora", "horas");
+    if (s < 2592000)  return plural(Math.round(s/86400), "día", "días");
+    if (s < 31536000) return plural(Math.round(s/2592000), "mes", "meses");
+    if (s < 3.15e9)   return plural(Math.round(s/31536000), "año", "años");
+    return "más de un siglo";
+  }
+
+  function formatearIntentos(n){
+    if (n < 1e6) return Math.round(n).toLocaleString("es-AR");
+    var exp = Math.floor(Math.log10(n));
+    return "10 elevado a " + exp;
+  }
+
+  /* ---------- banco de chistes ---------- */
+  var VEREDICTOS = {
+    0: ["RECHAZADA", "NULA", "INSERVIBLE"],
+    1: ["LAMENTABLE", "DEFICIENTE", "PREOCUPANTE"],
+    2: ["A MEJORAR", "OBSERVADA", "EN VEREMOS"],
+    3: ["ACEPTABLE", "PASABLE", "APROBADA"],
+    4: ["APROBADA", "IMPECABLE", "BLINDADA"]
+  };
+
+  var CHISTES = {
+    datos: [
+      "Metiste tus propios datos adentro de la contraseña. Es esconder la llave abajo del felpudo y dejar un cartel que diga «acá está la llave».",
+      "Tu nombre está en la contraseña. Cualquiera que te vio el documento una vez ya tiene medio trabajo hecho.",
+      "Usar tu nombre o tu mail no es personalizar: es entregarle la respuesta al que te quiere entrar."
+    ],
+    comun: [
+      "Esta contraseña está en las listas de las más usadas del planeta. No te la adivinan: te la buscan en un índice.",
+      "Está en el diccionario de contraseñas filtradas. El primero que prueba, entra, y encima se aburre.",
+      "Millones de personas eligieron exactamente esto. Es la contraseña de la fila del banco."
+    ],
+    teclado: [
+      "Eso lo escribiste arrastrando el dedo por el teclado. Se nota desde acá.",
+      "qwerty y toda su familia están en el top de los ataques desde antes de que existiera el wifi.",
+      "Un patrón de teclado no es aleatorio, es un dibujo. Y es un dibujo que ya vieron todos."
+    ],
+    numeroFinal: [
+      "Palabra más numerito al final. Lo hizo el 90% del planeta. No sos especial.",
+      "Ese número al final es un moño en una caja vacía.",
+      "Terminar en 123 no es seguridad: es una tradición familiar."
+    ],
+    anio: [
+      "Un año al final. Si es el de tu nacimiento, está en tu perfil. Si es el actual, es peor.",
+      "Los años son cuatro dígitos que ya están todos probados. Los mil quinientos que importan tardan un rato."
+    ],
+    fecha: [
+      "Metiste una fecha. Si es tu cumpleaños, lo publicaste vos. Si es de otro, también lo publicó.",
+      "Las fechas parecen personales pero son públicas. Es el peor combo posible."
+    ],
+    signoFinal: [
+      "El signo de exclamación al final es el «por favor» de las contraseñas. No convence a nadie.",
+      "Un símbolo pegado al final no cambia nada: los ataques prueban esa variante primero."
+    ],
+    repeticion: [
+      "Repetir el mismo carácter suma caracteres, no seguridad. Son dos cosas distintas.",
+      "aaaaa cuenta como una sola cosa para el que ataca. Para vos cuenta como esfuerzo. Injusto pero real."
+    ],
+    secuencia: [
+      "abcd, 1234 y compañía se prueban en los primeros dos segundos. Literalmente los primeros dos.",
+      "Una secuencia ordenada es lo contrario de al azar. Ese es todo el problema."
+    ],
+    corta: [
+      "Con ese largo no llegás ni a la esquina. El largo es lo único que escala de verdad.",
+      "Corta y con símbolos rinde menos que larga y aburrida. Es contraintuitivo y es así."
+    ],
+    minusculas: [
+      "Todo en minúscula y sin números. Es una palabra, no una contraseña.",
+      "Sin una sola mayúscula ni número, el espacio de búsqueda se achica muchísimo."
+    ],
+    bien: [
+      "Esta aguanta. No la va a romper nadie en el rato de vida que le queda al que lo intente.",
+      "Nada que objetar. Trámite aprobado sin observaciones, cosa que acá casi no pasa.",
+      "Sólida. Guardala en un gestor de contraseñas y no la uses en dos lados."
+    ],
+    casiBien: [
+      "Va bien encaminada. Sumale unas palabras más y pasa a la categoría «impenetrable».",
+      "No está mal. El salto de calidad viene del largo, no de agregarle más símbolos raros."
+    ]
+  };
+
+  /* ---------- generador de reemplazo ---------- */
+  var PALABRAS = ("milanesa tobogan farol mate colectivo bondi empanada sifon termo alfajor "+
+  "vereda cortado tostada persiana ventilador tenedor cucharon pochoclo helicoptero pinguino "+
+  "zapallo linterna carpincho escoba almohada portero balcon manguera tornillo cascara "+
+  "reloj bufanda ojota facturas trapo pantufla bicicleta parrilla cortina zanahoria "+
+  "canilla ladrillo enchufe mochila ravioles pelota destornillador cordon medialuna "+
+  "flan lechuza tostadora quincho ombu jacaranda cebolla ravioleta bizcocho picaporte "+
+  "sombrero valija pizarron pupitre tiza gomera trompo barrilete calesita hamaca "+
+  "tortuga comadreja hornero lagarto ballena cangrejo mosquito escarabajo caracol lombriz "+
+  "guitarra bombo acordeon bandoneon platillo trompeta violin campana silbato tambor "+
+  "montania medanos acantilado glaciar salar arroyo pantano estepa selva medano "+
+  "farola semaforo baldosa alcantarilla puente tunel ascensor escalera terraza patio "+
+  "cafetera pava frasco embudo colador batidora rallador sarten olla cacerola "+
+  "cepillo peine espejo toalla jabon esponja cortauna pinza tijera hilo "+
+  "cuaderno lapicera regla broche carpeta sobre estampilla sello lupa brujula "+
+  "paraguas piloto bufon mameluco delantal chaleco corbata gorra cinturon bolsillo").split(/\s+/);
+
+  function generarFrase(){
+    var v = new Uint32Array(4), d = new Uint32Array(1);
+    crypto.getRandomValues(v); crypto.getRandomValues(d);
+    var partes = [];
+    for (var i = 0; i < 4; i++) partes.push(PALABRAS[v[i] % PALABRAS.length]);
+    return partes.join("-") + "-" + (d[0] % 90 + 10);
+  }
+
+  /* ---------- análisis ---------- */
+  var ultimoDictamen = "";
+
+  function analizar(){
+    var err = $("errorForm");
+    err.textContent = "";
+
+    if (typeof zxcvbn !== "function"){
+      $("avisoCarga").hidden = false;
+      return;
+    }
+
+    var nombre   = $("nombre").value.trim();
+    var apellido = $("apellido").value.trim();
+    var mail     = $("mail").value.trim();
+    var pass     = $("pass").value;
+
+    if (!pass){
+      err.textContent = "Trámite incompleto: falta la contraseña a dictaminar.";
+      $("pass").focus();
+      return;
+    }
+    if (!$("jurada").checked){
+      err.textContent = "Trámite rechazado: falta la declaración jurada. Es un formulario, tiene sus reglas.";
+      $("jurada").focus();
+      return;
+    }
+
+    var entradas = [nombre, apellido];
+    if (mail){
+      entradas.push(mail);
+      entradas.push(mail.split("@")[0]);
+      var dom = mail.split("@")[1];
+      if (dom) entradas.push(dom.split(".")[0]);
+    }
+    entradas = entradas.filter(function(t){ return t && t.length >= 3; });
+
+    var r = zxcvbn(pass, entradas);
+    var seq = r.sequence || [];
+    var pn = normalizar(pass);
+
+    function tienePatron(p, dic){
+      return seq.some(function(s){
+        return s.pattern === p && (!dic || s.dictionary_name === dic);
+      });
+    }
+
+    var usaDatos = tienePatron("dictionary", "user_inputs") ||
+      entradas.some(function(t){
+        var n = normalizar(t);
+        return n.length >= 3 && pn.indexOf(n) !== -1;
+      });
+
+    /* observaciones ordenadas por gravedad */
+    var obs = [];
+    function agregar(clave){
+      if (obs.length < 4) obs.push(elegir(CHISTES[clave]));
+    }
+
+    if (usaDatos) agregar("datos");
+    if (tienePatron("dictionary", "passwords")) agregar("comun");
+    if (tienePatron("spatial")) agregar("teclado");
+    if (tienePatron("sequence")) agregar("secuencia");
+    if (tienePatron("date") || /(19|20)\d\d/.test(pass)){
+      agregar(/(19|20)\d\d$/.test(pass) ? "anio" : "fecha");
+    }
+    if (tienePatron("repeat")) agregar("repeticion");
+    if (pass.length < 10) agregar("corta");
+    if (/\d{1,4}$/.test(pass) && !/(19|20)\d\d$/.test(pass)) agregar("numeroFinal");
+    if (/[!*.#$_-]$/.test(pass)) agregar("signoFinal");
+    if (/^[a-záéíóúñ]+$/i.test(pass) && pass === pass.toLowerCase()) agregar("minusculas");
+
+    if (obs.length === 0) agregar(r.score === 4 ? "bien" : "casiBien");
+
+    /* pintar el dictamen */
+    var sello = $("sello");
+    sello.textContent = elegir(VEREDICTOS[r.score]);
+    sello.className = "sello s" + r.score;
+
+    var med = $("medidor");
+    med.innerHTML = "";
+    for (var i = 0; i < 5; i++){
+      var c = document.createElement("div");
+      c.className = "casilla" + (i <= r.score ? " on" : "");
+      c.textContent = i <= r.score ? "×" : "";
+      med.appendChild(c);
+    }
+    med.setAttribute("aria-label", "Puntaje " + r.score + " de 4");
+
+    var segundos = r.crack_times_seconds.offline_slow_hashing_1e4_per_second;
+    $("tiempo").textContent   = formatearTiempo(segundos);
+    $("intentos").textContent = formatearIntentos(r.guesses);
+    $("largo").textContent    = pass.length + " caracteres";
+
+    var ol = $("observaciones");
+    ol.innerHTML = "";
+    obs.forEach(function(t){
+      var li = document.createElement("li");
+      li.textContent = t;
+      ol.appendChild(li);
+    });
+
+    nuevaPropuesta();
+
+    ultimoDictamen =
+      "R.N.C.L. — Dictamen: " + sello.textContent + " (" + r.score + "/4)\n" +
+      "Tiempo hasta que te entren: " + formatearTiempo(segundos) + "\n" +
+      "Observación: " + obs[0] + "\n" +
+      "Probá la tuya y contame qué te dice.";
+
+    var d = $("dictamen");
+    d.hidden = false;
+    var bloque = $("bloqueSello");
+    bloque.classList.remove("animar");
+    void bloque.offsetWidth;
+    bloque.classList.add("animar");
+    d.scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+
+  function nuevaPropuesta(){
+    var frase = generarFrase();
+    $("propuesta").textContent = frase;
+    if (typeof zxcvbn === "function"){
+      var s = zxcvbn(frase).crack_times_seconds.offline_slow_hashing_1e4_per_second;
+      $("propuestaNota").textContent =
+        "Puntaje 4 de 4 — resiste " + formatearTiempo(s) + " del mismo ataque.";
+    }
+  }
+
+  /* ---------- eventos ---------- */
+  $("btnAnalizar").addEventListener("click", analizar);
+  $("btnGenerar").addEventListener("click", nuevaPropuesta);
+
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Enter" && e.target.tagName === "INPUT" && e.target.type !== "checkbox"){
+      e.preventDefault();
+      analizar();
+    }
+  });
+
+  $("btnCopiar").addEventListener("click", function(){
+    var b = this;
+    navigator.clipboard.writeText(ultimoDictamen).then(function(){
+      b.textContent = "Copiado";
+      setTimeout(function(){ b.textContent = "Copiar el dictamen"; }, 1800);
+    }, function(){
+      b.textContent = "No se pudo copiar";
+      setTimeout(function(){ b.textContent = "Copiar el dictamen"; }, 1800);
+    });
+  });
+
+  window.addEventListener("load", function(){
+    if (typeof zxcvbn !== "function") $("avisoCarga").hidden = false;
+  });
+})();
+</script>
+</body>
+</html>
